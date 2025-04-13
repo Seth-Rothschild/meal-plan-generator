@@ -2,8 +2,20 @@ import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 
 function updateSystemPrompt(body) {
-	let newPrompt =
-		'You are a built in assistant for a food app. Respond with a single one sentence follow up quuestion at a time. Your objective is to get more information about how the user likes to cook and eat.';
+	let newPrompt = '';
+
+	switch (body.type) {
+		case 'ask':
+			newPrompt =
+				'You are a built in assistant for a food app. Respond with a single one sentence follow up quuestion at a time. Your objective is to get more information about how the user likes to cook and eat.';
+			break;
+		case 'summarize':
+			newPrompt =
+				'You are a built in assistant for a food app. Summarize the following conversation in one to two single sentences. Pay particular attention to current habits, preferences for what they want to try to cook and eat. Phrase the response in the second person.';
+			break;
+		default:
+			throw new Error('Invalid type');
+	}
 	if (body.messages && body.messages.length > 0) {
 		const systemMessage = body.messages.find((msg) => msg.role === 'system');
 		if (systemMessage) {
@@ -21,6 +33,8 @@ export async function POST({ request }) {
 	try {
 		let body = await request.json();
 		body = updateSystemPrompt(body);
+
+		delete body.type;
 
 		body.model = env.MODEL;
 		body.stream = false;

@@ -1,7 +1,11 @@
+<script>
+	import { globalStore } from '$lib/stores/globalStore.svelte.js';
+</script>
+
 <div class="sidebar">
-	<button>Home</button>
-	<button>Talk More</button>
-	<button>Your Summary</button>
+	<button onclick={() => (globalStore.view = 'home')}>Home</button>
+	<button onclick={() => (globalStore.view = 'survey')}>Talk More</button>
+	<button onclick={() => (globalStore.view = 'summary')}>Your Summary</button>
 </div>
 
 <style>

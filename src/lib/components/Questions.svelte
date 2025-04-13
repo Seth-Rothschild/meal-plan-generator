@@ -3,11 +3,22 @@
 	import { backIn } from 'svelte/easing';
 	import { get } from 'svelte/store';
 	import AsyncSubmit from './AsyncSubmit.svelte';
+	import { surveyStore } from '$lib/stores/surveyStore.svelte.js';
+	const handleKeyDown = (event) => {
+		if (event.key === 'Enter' && !event.shiftKey) {
+			event.preventDefault();
+			hasResponse = false;
+			submit();
+		}
+	};
+	let { index } = $props();
 
-	let { initialQuestion, done = $bindable(), summary = $bindable() } = $props();
+	let hasResponse = $state(true);
+
+	let numberOfQuestions = Math.floor(Math.random() * 2) + 3;
 	let questions = $state([
 		{
-			question: initialQuestion,
+			question: surveyStore.pages[index].initialQuestion,
 			answer: ''
 		}
 	]);
@@ -15,12 +26,12 @@
 	let messages = [
 		{
 			role: 'assistant',
-			content: initialQuestion
+			content: surveyStore.pages[index].initialQuestion
 		}
 	];
 	let visibleQuestion = $state(0);
 
-	const getResponse = async (messages) => {
+	const getResponse = async (messages, type) => {
 		try {
 			const res = await fetch('/api/chat', {
 				method: 'POST',
@@ -28,7 +39,8 @@
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					messages
+					messages,
+					type
 				})
 			});
 			if (!res.ok) {
@@ -45,18 +57,34 @@
 			console.error('Error:', error);
 		}
 	};
+	const addHistory = (messages) => {
+		let oldSummaries = {
+			role: 'user',
+			content:
+				'Outcomes from previous conversations:\n' +
+				surveyStore.pages
+					.filter((page) => page.done)
+					.map((page) => page.summary)
+					.join('\n\n')
+		};
+
+		return [oldSummaries, ...messages];
+	};
 
 	const submit = async () => {
 		messages.push({
 			role: 'user',
 			content: questions[visibleQuestion].answer
 		});
-		if (visibleQuestion >= 2) {
-			visibleQuestion = 3;
-			complete();
+		if (visibleQuestion >= numberOfQuestions - 1) {
+			visibleQuestion = numberOfQuestions;
+			surveyStore.pages[index].messages = messages;
+			surveyStore.pages[index].summary = await getResponse(messages, 'summarize');
+			surveyStore.pages[index].done = true;
+			console.log('SurveyStore:', surveyStore);
 			return;
 		}
-		let message = await getResponse(messages);
+		let message = await getResponse(addHistory(messages), 'ask');
 		if (message) {
 			messages.push({
 				role: 'assistant',
@@ -67,16 +95,12 @@
 				answer: ''
 			};
 			questions = [...questions, newQuestion];
+			hasResponse = true;
 
 			visibleQuestion += 1;
 		} else {
 			console.error('No message received');
 		}
-	};
-
-	const complete = () => {
-		summary = questions.map((q) => q.question + ': ' + q.answer).join(', ');
-		done = true;
 	};
 </script>
 
@@ -88,9 +112,14 @@
 					{question.question}
 				</h2>
 				<div class="question__input">
-					<textarea class="answer" type="text" bind:value={question.answer}></textarea>
+					<textarea
+						onkeydown={handleKeyDown}
+						class="answer"
+						type="text"
+						bind:value={question.answer}
+					></textarea>
 					{#if index === visibleQuestion}
-						<AsyncSubmit label="Submit" onClick={submit} hasResponse={done} />
+						<AsyncSubmit label="Submit" onClick={submit} {hasResponse} />
 					{/if}
 				</div>
 			{/if}
@@ -104,7 +133,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		max-width: 500px;
+		max-width: 800px;
 		margin: 0 auto;
 	}
 	.question {
@@ -136,6 +165,8 @@
 		transition:
 			border-color 0.3s ease,
 			box-shadow 0.3s ease;
+		resize: none;
+		min-height: fit-content;
 	}
 
 	textarea:focus {

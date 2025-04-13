@@ -15,8 +15,8 @@
 	}
 </script>
 
-<button onclick={handleClick} disabled={isLoading || hasResponse}>
-	{#if isLoading}
+<button onclick={handleClick} disabled={isLoading || !hasResponse}>
+	{#if isLoading || !hasResponse}
 		<span class="spinner"></span>
 	{:else}
 		{label}
