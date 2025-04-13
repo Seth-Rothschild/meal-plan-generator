@@ -1,21 +1,27 @@
 <script>
 	import { surveyStore } from '$lib/stores/surveyStore.svelte';
 	import { globalStore } from '$lib/stores/globalStore.svelte';
+	import StartConversation from './StartConversation.svelte';
 </script>
 
 <div class="container">
-	{#if surveyStore.pages.filter((page) => page.done).length === 0}
-		<h3>Nothing to see here yet!</h3>
-		<a href="" onclick={() => (globalStore.view = 'survey')}>Go to survey</a>
-	{/if}
 	{#each surveyStore.pages as page, index}
 		{#if surveyStore.pages[index].done}
 			<div class="card">
 				<h3>{page.initialQuestion}</h3>
 				<p>{page.summary}</p>
 				<div style="display: flex; gap: 0.5rem;">
-					<button>Edit</button>
-					<button onclick={() => surveyStore.pages.splice(index, 1)}>Delete</button>
+					<button onclick={() => {
+                        globalStore.view = 'survey';
+                        surveyStore.pages[index].done = false;
+                    }}>Edit</button>
+					<button onclick={() => {
+                        surveyStore.pages.splice(index, 1)
+                        if (surveyStore.pages.length === 0) {
+                            globalStore.view = 'survey';
+                        }
+                    }
+                        }>Delete</button>
 				</div>
 			</div>
 		{/if}
@@ -27,7 +33,6 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 1rem;
 		width: 100%;
 	}
 	.card {

@@ -13,6 +13,10 @@ function updateSystemPrompt(body) {
 			newPrompt =
 				'You are a built in assistant for a food app. Summarize the following conversation in one to two single sentences. Pay particular attention to current habits, preferences for what they want to try to cook and eat. Phrase the response in the second person.';
 			break;
+		case 'plan':
+			newPrompt =
+				'You are a built in assistant for a food app. Create a one week meal plan using the user preferences provided. Use newlines but not markdown or text formatting. Add a brief summary at the end of why you chose what you chose.'
+			break;
 		default:
 			throw new Error('Invalid type');
 	}

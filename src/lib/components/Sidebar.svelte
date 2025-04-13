@@ -1,11 +1,14 @@
 <script>
 	import { globalStore } from '$lib/stores/globalStore.svelte.js';
+	import { surveyStore } from '$lib/stores/surveyStore.svelte';
 </script>
 
 <div class="sidebar">
 	<button onclick={() => (globalStore.view = 'home')}>Home</button>
 	<button onclick={() => (globalStore.view = 'survey')}>Talk More</button>
-	<button onclick={() => (globalStore.view = 'summary')}>Your Summary</button>
+	{#if surveyStore.pages.length > 0 && surveyStore.pages.some((page) => page.done)}
+		<button onclick={() => (globalStore.view = 'summary')}>Your Summary</button>
+	{/if}
 </div>
 
 <style>
