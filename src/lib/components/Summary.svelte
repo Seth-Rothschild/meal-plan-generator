@@ -11,17 +11,20 @@
 				<h3>{page.initialQuestion}</h3>
 				<p>{page.summary}</p>
 				<div style="display: flex; gap: 0.5rem;">
-					<button onclick={() => {
-                        globalStore.view = 'survey';
-                        surveyStore.pages[index].done = false;
-                    }}>Edit</button>
-					<button onclick={() => {
-                        surveyStore.pages.splice(index, 1)
-                        if (surveyStore.pages.length === 0) {
-                            globalStore.view = 'survey';
-                        }
-                    }
-                        }>Delete</button>
+					<button
+						onclick={() => {
+							globalStore.view = 'survey';
+							surveyStore.pages[index].done = false;
+						}}>Edit</button
+					>
+					<button
+						onclick={() => {
+							surveyStore.pages.splice(index, 1);
+							if (surveyStore.pages.length === 0) {
+								globalStore.view = 'survey';
+							}
+						}}>Delete</button
+					>
 				</div>
 			</div>
 		{/if}

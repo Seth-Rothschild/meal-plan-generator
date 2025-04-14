@@ -35,12 +35,24 @@
 				label="Go"
 				onClick={async () => {
 					plan = await getResponse(addHistory([]), 'plan');
-					console.log('Plan:', plan);
 				}}
 				hasResponse={true}
-				/>
-				<p style='white-space: pre-line;'>{plan}</p>
-
+			/>
+			{#if plan}
+				<div class="plan">
+					{#each plan.split('\n\n') as day}
+						<div class="day">
+							{#each day.split('\n') as line, i}
+								{#if i === 0}
+									<p><strong>{line}</strong></p>
+								{:else if line != ''}
+									<p>{line}</p>
+								{/if}
+							{/each}
+						</div>
+					{/each}
+				</div>
+			{/if}
 		{:else if globalStore.view === 'survey'}
 			<ProgressBar {progress} />
 			{#if currentPage === -1}
@@ -60,6 +72,23 @@
 </div>
 
 <style>
+	.plan {
+		margin-top: 1rem;
+		display: flex;
+		flex-direction: column;
+		align-items: left;
+		width: 100%;
+	}
+	.day {
+		border: 1px solid #ccc;
+		padding: 2rem;
+		padding-top: 0.25rem;
+		margin-bottom: 1rem;
+		border-radius: 8px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		transition: box-shadow 0.3s ease;
+		width: 800px;
+	}
 	.layout {
 		font-family: sans-serif;
 		font-size: 18px;
@@ -85,5 +114,4 @@
 		background-color: #fff;
 		padding: 1rem;
 	}
-
 </style>

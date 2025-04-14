@@ -41,15 +41,14 @@
 		/>
 	</div>
 </div>
-<style>
 
+<style>
 	.submit-bar {
 		width: 100%;
 		display: flex;
 		gap: 0.5rem;
 	}
 	input {
-
 		width: 80%;
 		font-family: 'Roboto', sans-serif;
 		font-size: 1rem;

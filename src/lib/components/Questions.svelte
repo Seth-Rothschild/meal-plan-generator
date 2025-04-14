@@ -3,29 +3,27 @@
 	import { backIn } from 'svelte/easing';
 	import { get } from 'svelte/store';
 	import AsyncSubmit from './AsyncSubmit.svelte';
-    import { surveyStore } from '$lib/stores/surveyStore.svelte.js';
+	import { surveyStore } from '$lib/stores/surveyStore.svelte.js';
 	import { getResponse, addHistory } from '$lib/helpers.svelte.js';
 
-    const handleKeyDown = (event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            hasResponse = false;
-            submit();
-        }
-    };
+	const handleKeyDown = (event) => {
+		if (event.key === 'Enter' && !event.shiftKey) {
+			event.preventDefault();
+			hasResponse = false;
+			submit();
+		}
+	};
 	let { index } = $props();
 
-    let hasResponse = $state(true)
-    
-    let numberOfQuestions = Math.floor(Math.random() * 2) + 3;
-    let questions = $state([
-        {
-            question: surveyStore.pages[index].initialQuestion,
-            answer: ''
-        }
+	let hasResponse = $state(true);
 
-    ])
-
+	let numberOfQuestions = Math.floor(Math.random() * 2) + 3;
+	let questions = $state([
+		{
+			question: surveyStore.pages[index].initialQuestion,
+			answer: ''
+		}
+	]);
 
 	if (!surveyStore.pages[index].messages.length) {
 		surveyStore.pages[index].messages = [
@@ -43,15 +41,15 @@
 			if (message.role === 'assistant') {
 				acc.push({
 					question: message.content,
-					answer: surveyStore.pages[index].messages[i + 1]?.role === 'user'
-						? surveyStore.pages[index].messages[i + 1].content
-						: ''
+					answer:
+						surveyStore.pages[index].messages[i + 1]?.role === 'user'
+							? surveyStore.pages[index].messages[i + 1].content
+							: ''
 				});
 			}
 			return acc;
 		}, []);
 	}
-
 
 	const submit = async () => {
 		surveyStore.pages[index].messages.push({
@@ -60,9 +58,12 @@
 		});
 		if (visibleQuestion >= numberOfQuestions - 1) {
 			visibleQuestion = numberOfQuestions;
-            surveyStore.pages[index].done = true;
-            surveyStore.pages[index].summary = await getResponse(surveyStore.pages[index].messages, 'summarize');
-            console.log('SurveyStore:', surveyStore);
+			surveyStore.pages[index].done = true;
+			surveyStore.pages[index].summary = await getResponse(
+				surveyStore.pages[index].messages,
+				'summarize'
+			);
+			console.log('SurveyStore:', surveyStore);
 			return;
 		}
 		let message = await getResponse(addHistory(surveyStore.pages[index].messages), 'ask');
@@ -76,7 +77,7 @@
 				answer: ''
 			};
 			questions = [...questions, newQuestion];
-            hasResponse = true
+			hasResponse = true;
 
 			visibleQuestion += 1;
 		} else {
@@ -87,8 +88,7 @@
 		if (document.getElementById(`answer-${visibleQuestion}`)) {
 			document.getElementById(`answer-${visibleQuestion}`).focus();
 		}
-	})
-
+	});
 </script>
 
 <div class="container">
@@ -99,9 +99,15 @@
 					{question.question}
 				</h2>
 				<div class="question__input">
-					<textarea id={`answer-${index}`} onkeydown={handleKeyDown} class="answer" type="text" bind:value={question.answer}></textarea>
+					<textarea
+						id={`answer-${index}`}
+						onkeydown={handleKeyDown}
+						class="answer"
+						type="text"
+						bind:value={question.answer}
+					></textarea>
 					{#if index === visibleQuestion}
-						<AsyncSubmit label="Submit" onClick={submit} hasResponse={hasResponse} />
+						<AsyncSubmit label="Submit" onClick={submit} {hasResponse} />
 					{/if}
 				</div>
 			{/if}
@@ -113,10 +119,7 @@
 		label="Update"
 		onClick={async () => {
 			const messages = questions.reduce((acc, qa) => {
-				acc.push(
-					{ role: 'assistant', content: qa.question },
-					{ role: 'user', content: qa.answer }
-				);
+				acc.push({ role: 'assistant', content: qa.question }, { role: 'user', content: qa.answer });
 				return acc;
 			}, []);
 			surveyStore.pages[index].messages = messages;
@@ -124,7 +127,7 @@
 			surveyStore.pages[index].done = true;
 		}}
 		hasResponse={true}
-		/>
+	/>
 {/if}
 
 <style>
