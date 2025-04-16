@@ -1,5 +1,5 @@
 <script>
-	let { onClick, label = 'Submit', hasResponse = false } = $props();
+	let { onClick, label = 'Submit', hasResponse = false, disabled = false } = $props();
 
 	let isLoading = $state(false);
 
@@ -15,7 +15,7 @@
 	}
 </script>
 
-<button onclick={handleClick} disabled={isLoading || !hasResponse}>
+<button onclick={handleClick} disabled={isLoading || !hasResponse || disabled}>
 	{#if isLoading || !hasResponse}
 		<span class="spinner"></span>
 	{:else}

@@ -17,6 +17,10 @@ function updateSystemPrompt(body) {
 			newPrompt =
 				'You are a built in assistant for a food app. Create a one week meal plan using the user preferences provided. Use newlines but not markdown or text formatting. Do not add a brief summary of why you chose what you chose.';
 			break;
+		case 'recipe':
+			newPrompt =
+				'You are a built in assistant for a food app. Create a recipe using the user preferences provided. Rather than list ingredients at the top, add quantities and units into the text of the recipe. Use newlines but not markdown or text formatting. Do not add a brief summary of why you chose what you chose.';
+			break;
 		default:
 			throw new Error('Invalid type');
 	}

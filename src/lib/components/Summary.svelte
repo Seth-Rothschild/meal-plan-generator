@@ -23,6 +23,7 @@
 							if (surveyStore.pages.length === 0) {
 								globalStore.view = 'survey';
 							}
+							surveyStore.savePages();
 						}}>Delete</button
 					>
 				</div>

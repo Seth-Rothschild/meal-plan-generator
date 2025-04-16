@@ -5,6 +5,7 @@
 	import AsyncSubmit from './AsyncSubmit.svelte';
 	import { surveyStore } from '$lib/stores/surveyStore.svelte.js';
 	import { getResponse, addHistory } from '$lib/helpers.svelte.js';
+	import { globalStore } from '$lib/stores/globalStore.svelte';
 
 	const handleKeyDown = (event) => {
 		if (event.key === 'Enter' && !event.shiftKey) {
@@ -63,7 +64,8 @@
 				surveyStore.pages[index].messages,
 				'summarize'
 			);
-			console.log('SurveyStore:', surveyStore);
+			surveyStore.savePages();
+
 			return;
 		}
 		let message = await getResponse(addHistory(surveyStore.pages[index].messages), 'ask');
@@ -84,6 +86,7 @@
 			console.error('No message received');
 		}
 	};
+
 	$effect(() => {
 		if (document.getElementById(`answer-${visibleQuestion}`)) {
 			document.getElementById(`answer-${visibleQuestion}`).focus();
@@ -125,6 +128,7 @@
 			surveyStore.pages[index].messages = messages;
 			surveyStore.pages[index].summary = await getResponse(messages, 'summarize');
 			surveyStore.pages[index].done = true;
+			surveyStore.savePages();
 		}}
 		hasResponse={true}
 	/>

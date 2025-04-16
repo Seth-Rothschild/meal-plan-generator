@@ -10,6 +10,16 @@
 		'What are your nutritional goals in meal planning?',
 		'How much time do you have to prepare meals each day?'
 	].filter((q) => !surveyStore.pages.some((page) => page.initialQuestion === q));
+
+	let submit = () => {
+		surveyStore.pages.push({
+			initialQuestion: newQuestion,
+			messages: [],
+			summary: '',
+			done: false
+		});
+		newQuestion = '';
+	};
 </script>
 
 <div>
@@ -17,7 +27,13 @@
 	<p>Try one of the sample conversations or create your own.</p>
 	<div class="sample-questions">
 		{#each sampleQuestions as sampleQuestion}
-			<div class="card" onclick={() => (newQuestion = sampleQuestion)}>
+			<div
+				class="card"
+				onclick={() => {
+					newQuestion = sampleQuestion;
+					submit();
+				}}
+			>
 				{sampleQuestion}
 			</div>
 		{/each}
@@ -25,20 +41,7 @@
 
 	<div class="submit-bar">
 		<input bind:value={newQuestion} />
-		<AsyncSubmit
-			label="Talk More"
-			onClick={() => {
-				surveyStore.pages.push({
-					initialQuestion: newQuestion,
-					messages: [],
-					summary: '',
-					done: false
-				});
-				newQuestion = '';
-				console.log('SurveyStore:', surveyStore);
-			}}
-			hasResponse={true}
-		/>
+		<AsyncSubmit label="Talk More" onClick={submit} disabled={!newQuestion} hasResponse={true} />
 	</div>
 </div>
 
