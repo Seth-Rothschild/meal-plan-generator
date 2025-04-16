@@ -21,7 +21,7 @@
 	});
 </script>
 
-<h2>Welcome to the Meal Planning Assistant</h2>
+<h2>Welcome to Meal Planner</h2>
 
 {#if surveyStore?.pages?.length > 0}
 	<p>This will generate a meal plan for you based on your preferences.</p>
@@ -41,7 +41,7 @@
 	</p>
 {/if}
 
-<div style="display: flex; flex-direction: row; gap: 1rem;">
+<div style="display: flex; flex-direction: row; gap: 1rem; flex-wrap: wrap;">
 	{#if plan}
 		<div class="plan">
 			{#each Object.entries(days) as [title, lines]}
@@ -76,31 +76,40 @@
 		</div>
 	{/if}
 	{#if recipe}
-		<p style="white-space: pre-wrap; font-size: 1.2rem">{recipe}</p>
+		<p class='recipe' style="">{recipe}</p>
 	{/if}
 </div>
 
 <style>
-	.plan {
-		margin-top: 1rem;
-		display: flex;
-		flex-direction: column;
-		align-items: left;
-	}
-	.day {
-		border: 1px solid #ccc;
-		padding: 2rem;
-		padding-top: 0.25rem;
-		margin-bottom: 1rem;
-		border-radius: 8px;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		transition: box-shadow 0.3s ease;
-		width: 600px;
-	}
+    .plan {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    .day {
+        border: 1px solid #ccc;
+        padding: 2rem;
+        padding-top: 0.25rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
+        min-width: 400px;
+        max-width: 600px;
+    }
 	.button-row {
 		display: flex;
 		gap: 0.5rem;
 		height: 75px;
 		justify-content: right;
 	}
+    .recipe {
+
+        white-space: pre-wrap; 
+        font-size: 1.2rem;
+        min-width: 300px;
+        max-width: 600px;
+        padding: 0px 16px;
+    }
 </style>

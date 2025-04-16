@@ -60,6 +60,7 @@
 		if (visibleQuestion >= numberOfQuestions - 1) {
 			visibleQuestion = numberOfQuestions;
 			surveyStore.pages[index].done = true;
+			globalStore.view = 'summary';
 			surveyStore.pages[index].summary = await getResponse(
 				surveyStore.pages[index].messages,
 				'summarize'

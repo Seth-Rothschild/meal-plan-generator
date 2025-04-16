@@ -1,5 +1,5 @@
 <script>
-	let appName = 'Recipe Helper';
+	let appName = 'Meal Planner';
 </script>
 
 <header>

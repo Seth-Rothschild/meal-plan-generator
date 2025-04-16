@@ -1,6 +1,8 @@
-# About
+# Meal Planner
 
-This is an LLM recipes app. More to come soon.
+This is an app which takes in user preferences for how they plan meals, and then generates meal plans.
+
+![](demo.gif)
 
 # Quick Start
 

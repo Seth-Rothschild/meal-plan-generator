@@ -1,6 +1,6 @@
 <script>
 	import Header from '$lib/components/Header.svelte';
-	import Sidebar from '$lib/components/Sidebar.svelte';
+	import Navbar from '$lib/components/Navbar.svelte';
 	import Home from '$lib/components/Home.svelte';
 
 	let plan = $state('');
@@ -12,7 +12,7 @@
 		<Header />
 	</header>
 	<aside class="sidebar">
-		<Sidebar />
+		<Navbar />
 	</aside>
 	<main class="content">
 		{@render children()}
@@ -44,5 +44,28 @@
 	.content {
 		background-color: #fff;
 		padding: 1rem;
+	}
+
+	@media (max-width: 768px) {
+		.layout {
+			grid-template-rows: 75px auto;
+			grid-template-columns: auto;
+		}
+
+		/* .sidebar {
+			display: none;
+		} */
+
+		.sidebar {
+			/* grid-row: 3; */
+			position: fixed;
+			bottom: 0;
+			width: 100%;
+			padding: 0;
+			height: 70px;
+			background-color: white;
+			border: 1px solid #ccc;
+		}
+
 	}
 </style>

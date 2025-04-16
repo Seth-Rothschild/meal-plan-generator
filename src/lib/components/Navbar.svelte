@@ -30,5 +30,20 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: right;
+		height: 100%;
+	}
+	button {
+		height: 60px; 
+	}
+
+	@media (max-width: 768px) {
+		button {
+			height: 100%; 
+			text-align: center;
+		}
+		.sidebar {
+			flex-direction: row;
+			justify-content: space-around;
+		}
 	}
 </style>
