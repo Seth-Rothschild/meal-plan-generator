@@ -130,8 +130,8 @@
 			<div class="step-card completed" in:fly={{ y: 20, duration: 300 }}>
 				<div class="step-number">{index + 1}</div>
 				<div class="step-body">
-					<p class="step-question">{step.question}</p>
-					<p class="step-answer">{step.answer}</p>
+					<p class="step-question" style="white-space: pre-wrap">{step.question}</p>
+					<p class="step-answer" style="white-space: pre-wrap">{step.answer}</p>
 				</div>
 			</div>
 		{/each}
@@ -140,7 +140,7 @@
 			<div class="step-card active" in:fly={{ y: 20, duration: 300 }}>
 				<div class="step-number">{stepNumber}</div>
 				<div class="step-body">
-					<p class="step-question">{currentQuestion}</p>
+					<p class="step-question" style="white-space: pre-wrap">{currentQuestion}</p>
 					{#if loading}
 						<div class="loading-indicator">
 							<span class="dot"></span>
@@ -149,13 +149,13 @@
 						</div>
 					{:else}
 						<div class="answer-row">
-							<input
-								type="text"
+							<textarea
+								rows="2"
 								placeholder="Type your answer..."
 								bind:value={currentAnswer}
 								onkeydown={handleKeydown}
 								disabled={loading}
-							/>
+							></textarea>
 							<button
 								type="button"
 								class="submit-btn"
@@ -312,18 +312,20 @@
 		gap: 8px;
 	}
 
-	.answer-row input {
+	.answer-row textarea {
 		flex: 1;
 		padding: 12px 16px;
 		border: 2px solid var(--color-border);
 		border-radius: var(--radius-md);
 		font-size: var(--font-base);
+		font-family: inherit;
 		background: var(--color-white);
 		color: var(--color-charcoal);
+		resize: vertical;
 		transition: border-color var(--transition-fast);
 	}
 
-	.answer-row input:focus {
+	.answer-row textarea:focus {
 		outline: none;
 		border-color: var(--color-sage);
 	}
