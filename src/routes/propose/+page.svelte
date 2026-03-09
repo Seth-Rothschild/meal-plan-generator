@@ -155,7 +155,7 @@
 
 	{#if data.allTags.length > 0}
 		<section class="tags-section">
-			<h2>Filter by tags</h2>
+			<h2>Add tags</h2>
 			<TagBar tags={data.allTags} {activeTags} ontoggle={toggleTag} />
 		</section>
 	{/if}
