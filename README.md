@@ -1,15 +1,17 @@
 # Meal Proposer
 
-A personal meal planning app that helps you discover, save, and get suggestions for meals based on your food preferences. Built with SvelteKit 2, Svelte 5, and an LLM backend.
+A personal meal planning app that helps you discover, save, and get suggestions for meals based on your food preferences. Built with Svelte5 and Storybook.
 
-> This project is mostly written with Claude Code.
+This project is mostly written with Claude Code.
+
+![](./screenshot.png)
 
 ## Features
 
 - **Meals** -- Save and manage your meal collection with tags and notes
 - **Preferences** -- Store food preferences as short text snippets with tags
-- **Discover** -- Walk through a guided questionnaire (powered by an LLM) that helps you articulate new food preferences
-- **Propose** -- Get meal suggestions from your saved meals (random pick) or new AI-generated ideas, with explicit control over which preferences are sent to the LLM
+- **Discover** -- Walk through a guided questionnaire that helps you articulate new food preferences
+- **Propose** -- Get meal suggestions from your saved meals (random pick) or automatically generated ideas, with explicit control over which preferences are sent to the LLM
 
 ## Setup
 
@@ -57,9 +59,3 @@ npm run preview
 
 Uses `@sveltejs/adapter-node` for deployment.
 
-## Tech stack
-
-- SvelteKit 2 / Svelte 5 (runes)
-- Storybook 10 with addon-vitest and addon-a11y
-- Vitest 4 with Playwright browser mode
-- JSON file storage (`data/db.json`)
