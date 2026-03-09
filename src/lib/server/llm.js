@@ -66,7 +66,7 @@ function buildDiscoverPrompt(existingPreferences, existingTags) {
 	}
 
 	if (existingTags.length > 0) {
-		prompt += `\n\nWhen tagging snippets, reuse these existing tags when they fit: ${existingTags.join(', ')}`;
+		prompt += `\n\nWhen tagging snippets, add a tag for the conversation topic but also reuse these existing tags when they fit: ${existingTags.join(', ')}`;
 	}
 
 	return prompt;
