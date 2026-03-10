@@ -58,21 +58,17 @@
 		progress.target = SLOW_CRAWL_TARGET;
 
 		let collectedNames = [];
-		let promises = [];
 
 		for (let i = 0; i < MEAL_COUNT; i++) {
-			let promise = fetchSingleProposal(collectedNames).then((result) => {
-				completedCount++;
-				progress.target = completedCount / MEAL_COUNT;
-				if (result.proposal) {
-					collectedNames.push(result.proposal.name);
-					proposals = [...proposals, result.proposal];
-				}
-			});
-			promises.push(promise);
+			let result = await fetchSingleProposal(collectedNames);
+			completedCount++;
+			progress.target = completedCount / MEAL_COUNT;
+			if (result.proposal) {
+				collectedNames.push(result.proposal.name);
+				proposals = [...proposals, result.proposal];
+			}
 		}
 
-		await Promise.all(promises);
 		loadingIdeas = false;
 		progress.target = 0;
 	}

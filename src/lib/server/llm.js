@@ -11,7 +11,8 @@ export async function chatCompletion(messages, options = {}) {
 
 	let body = {
 		model: config.model,
-		messages
+		messages,
+		reasoning_effort: 'low'
 	};
 
 	let response = await fetch(url, {

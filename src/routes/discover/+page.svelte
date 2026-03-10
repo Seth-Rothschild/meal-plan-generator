@@ -1,9 +1,12 @@
 <script>
 	import { goto } from '$app/navigation';
 	import { fly } from 'svelte/transition';
+	import { Tween } from 'svelte/motion';
+	import { linear } from 'svelte/easing';
 
 	let messages = $state([]);
 	let loading = $state(false);
+	let progress = new Tween(0, { duration: 20000, easing: linear });
 	let doneSnippets = $state(null);
 	let savingIndex = $state(-1);
 	let savedIndexes = $state(new Set());
@@ -52,6 +55,9 @@
 		messages = [...messages, { role: 'user', content: trimmed }];
 		currentAnswer = '';
 		loading = true;
+		progress.target = 0;
+		progress = new Tween(0, { duration: 20000, easing: linear });
+		progress.target = 0.9;
 
 		let response = await fetch('/api/discover', {
 			method: 'POST',
@@ -60,6 +66,7 @@
 		});
 
 		let result = await response.json();
+		progress = new Tween(1, { duration: 300, easing: linear });
 		loading = false;
 
 		if (result.error) {
@@ -142,10 +149,11 @@
 				<div class="step-body">
 					<p class="step-question" style="white-space: pre-wrap">{currentQuestion}</p>
 					{#if loading}
-						<div class="loading-indicator">
-							<span class="dot"></span>
-							<span class="dot"></span>
-							<span class="dot"></span>
+						<div class="progress-section">
+							<div class="progress-bar">
+								<div class="progress-fill" style="width: {progress.current * 100}%"></div>
+							</div>
+							<p class="progress-text">Thinking...</p>
 						</div>
 					{:else}
 						<div class="answer-row">
@@ -364,37 +372,31 @@
 		font-size: 22px;
 	}
 
-	.loading-indicator {
+	.progress-section {
 		display: flex;
-		gap: 6px;
+		flex-direction: column;
+		gap: 8px;
 		padding: 8px 0;
 	}
 
-	.dot {
-		width: 8px;
+	.progress-bar {
+		width: 100%;
 		height: 8px;
-		border-radius: 50%;
+		background-color: var(--color-surface);
+		border-radius: var(--radius-pill);
+		overflow: hidden;
+	}
+
+	.progress-fill {
+		height: 100%;
 		background-color: var(--color-sage);
-		animation: bounce 1.2s infinite ease-in-out;
+		border-radius: var(--radius-pill);
+		transition: width 0.3s linear;
 	}
 
-	.dot:nth-child(2) {
-		animation-delay: 0.2s;
-	}
-
-	.dot:nth-child(3) {
-		animation-delay: 0.4s;
-	}
-
-	@keyframes bounce {
-		0%,
-		60%,
-		100% {
-			transform: translateY(0);
-		}
-		30% {
-			transform: translateY(-6px);
-		}
+	.progress-text {
+		font-size: var(--font-sm);
+		color: var(--color-muted);
 	}
 
 	.snippets-section {
