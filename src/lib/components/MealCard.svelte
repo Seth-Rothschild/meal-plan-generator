@@ -1,13 +1,31 @@
 <script>
 	import TagPill from './TagPill.svelte';
 
-	let { meal, onedit, ondelete } = $props();
+	let { meal, onedit, ondelete, ongeneratedetails } = $props();
+
+	let generating = $state(false);
+
+	async function handleGenerateDetails() {
+		generating = true;
+		await ongeneratedetails?.();
+		generating = false;
+	}
 </script>
 
 <div class="meal-card">
 	<div class="card-header">
 		<h3 class="card-title">{meal.name}</h3>
 		<div class="card-actions">
+			<button
+				type="button"
+				class="action-btn"
+				aria-label="Generate details"
+				title={meal.notes ? 'Regenerate details' : 'Generate details'}
+				onclick={handleGenerateDetails}
+				disabled={generating}
+			>
+				<span class="icon">{generating ? 'hourglass_empty' : 'auto_awesome'}</span>
+			</button>
 			<button type="button" class="action-btn" aria-label="Edit" onclick={() => onedit?.()}>
 				<span class="icon">edit</span>
 			</button>
@@ -28,7 +46,13 @@
 			{/each}
 		</div>
 	{/if}
-	{#if meal.notes}
+	{#if generating}
+		<div class="generating-indicator">
+			<span class="dot"></span>
+			<span class="dot"></span>
+			<span class="dot"></span>
+		</div>
+	{:else if meal.notes}
 		<p class="card-notes">{meal.notes}</p>
 	{/if}
 </div>
@@ -111,5 +135,39 @@
 		-webkit-line-clamp: 3;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+	}
+
+	.generating-indicator {
+		display: flex;
+		gap: 6px;
+		margin-top: 14px;
+		padding: 4px 0;
+	}
+
+	.dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background-color: var(--color-sage);
+		animation: bounce 1.2s infinite ease-in-out;
+	}
+
+	.dot:nth-child(2) {
+		animation-delay: 0.2s;
+	}
+
+	.dot:nth-child(3) {
+		animation-delay: 0.4s;
+	}
+
+	@keyframes bounce {
+		0%,
+		60%,
+		100% {
+			transform: translateY(0);
+		}
+		30% {
+			transform: translateY(-6px);
+		}
 	}
 </style>

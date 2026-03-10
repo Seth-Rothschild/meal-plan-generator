@@ -122,3 +122,25 @@ export async function getAllTags() {
 	}
 	return [...tagSet].sort();
 }
+
+export async function renameTag(oldName, newName) {
+	const data = await readData();
+	for (const meal of data.meals) {
+		meal.tags = meal.tags.map((t) => (t === oldName ? newName : t));
+	}
+	for (const pref of data.preferences) {
+		pref.tags = pref.tags.map((t) => (t === oldName ? newName : t));
+	}
+	await writeData(data);
+}
+
+export async function deleteTag(name) {
+	const data = await readData();
+	for (const meal of data.meals) {
+		meal.tags = meal.tags.filter((t) => t !== name);
+	}
+	for (const pref of data.preferences) {
+		pref.tags = pref.tags.filter((t) => t !== name);
+	}
+	await writeData(data);
+}

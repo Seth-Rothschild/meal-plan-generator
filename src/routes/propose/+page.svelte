@@ -1,5 +1,7 @@
 <script>
 	import { fly } from 'svelte/transition';
+	import { Tween } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
 	import TagBar from '$lib/components/TagBar.svelte';
 	import ProposalCard from '$lib/components/ProposalCard.svelte';
 	import MealForm from '$lib/components/MealForm.svelte';
@@ -7,14 +9,21 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { invalidateAll } from '$app/navigation';
 
+	const MEAL_COUNT = 3;
+	const SLOW_CRAWL_TARGET = 0.15;
+
 	let { data } = $props();
 
 	let activeTags = $state([]);
 	let proposals = $state([]);
+	let theme = $state('');
 	let loadingRandom = $state(false);
 	let loadingIdeas = $state(false);
+	let completedCount = $state(0);
 	let savingMeal = $state(null);
-	let enabledPreferenceIds = $state(new Set());
+	let enabledPreferenceIds = $state(new Set(data.preferences.map((p) => p.id)));
+
+	let progress = new Tween(0, { duration: 600, easing: cubicOut });
 
 	let allPrefsEnabled = $derived(
 		data.preferences.length > 0 && enabledPreferenceIds.size === data.preferences.length
@@ -52,6 +61,7 @@
 
 	async function proposeRandom() {
 		loadingRandom = true;
+		proposals = [];
 		let response = await fetch('/api/propose/random', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -64,21 +74,43 @@
 		}
 	}
 
-	async function proposeNewIdeas() {
-		loadingIdeas = true;
-		let response = await fetch('/api/propose', {
+	function fetchSingleProposal(avoidNames) {
+		return fetch('/api/propose', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				activeTags,
-				preferences: selectedPreferences
+				preferences: selectedPreferences,
+				theme,
+				avoidNames
 			})
-		});
-		let result = await response.json();
-		loadingIdeas = false;
-		if (result.proposals) {
-			proposals = [...result.proposals, ...proposals];
+		}).then((r) => r.json());
+	}
+
+	async function proposeNewIdeas() {
+		loadingIdeas = true;
+		proposals = [];
+		completedCount = 0;
+		progress.target = SLOW_CRAWL_TARGET;
+
+		let collectedNames = [];
+		let promises = [];
+
+		for (let i = 0; i < MEAL_COUNT; i++) {
+			let promise = fetchSingleProposal(collectedNames).then((result) => {
+				completedCount++;
+				progress.target = completedCount / MEAL_COUNT;
+				if (result.proposal) {
+					collectedNames.push(result.proposal.name);
+					proposals = [...proposals, result.proposal];
+				}
+			});
+			promises.push(promise);
 		}
+
+		await Promise.all(promises);
+		loadingIdeas = false;
+		progress.target = 0;
 	}
 
 	function dismissProposal(index) {
@@ -107,6 +139,81 @@
 
 <div class="propose-page">
 	<h1>Propose a Meal</h1>
+
+	<div class="input-section">
+		<div class="theme-input">
+			<input
+				type="text"
+				bind:value={theme}
+				placeholder="Quick Italian weeknight, comfort food, something spicy..."
+				onkeydown={(e) => { if (e.key === 'Enter' && !loadingIdeas) proposeNewIdeas(); }}
+			/>
+		</div>
+		<div class="actions-row">
+			<button
+				type="button"
+				class="generate-btn"
+				onclick={proposeNewIdeas}
+				disabled={loadingIdeas}
+			>
+				<span class="icon btn-icon">auto_awesome</span>
+				{loadingIdeas ? 'Generating...' : 'Generate ideas'}
+			</button>
+			{#if data.meals.length > 0}
+				<button
+					type="button"
+					class="random-btn"
+					onclick={proposeRandom}
+					disabled={loadingRandom}
+				>
+					<span class="icon btn-icon-sm">casino</span>
+					{loadingRandom ? 'Picking...' : 'From my meals'}
+				</button>
+			{/if}
+		</div>
+	</div>
+
+	{#if loadingIdeas}
+		<div class="progress-section">
+			<div class="progress-bar">
+				<div class="progress-fill" style="width: {progress.current * 100}%"></div>
+			</div>
+			<p class="progress-text">
+				{completedCount === 0
+					? 'Generating meal ideas...'
+					: `${completedCount} of ${MEAL_COUNT} meals ready`}
+			</p>
+		</div>
+	{/if}
+
+	{#if loadingRandom}
+		<div class="progress-section">
+			<p class="progress-text">Picking a meal...</p>
+		</div>
+	{/if}
+
+	{#if proposals.length > 0}
+		<div class="proposals-list">
+			{#each proposals as proposal, index (proposal.name + index)}
+				<div in:fly={{ y: 20, duration: 300 }}>
+					<ProposalCard
+						{proposal}
+						onaccept={() => acceptProposal(proposal)}
+						ondismiss={() => dismissProposal(index)}
+					/>
+				</div>
+			{/each}
+		</div>
+	{:else if !loadingIdeas && !loadingRandom}
+		<EmptyState message="Hit generate to get meal ideas!" />
+	{/if}
+
+	{#if data.allTags.length > 0}
+		<section class="tags-section">
+			<h2>Add tags</h2>
+			<TagBar tags={data.allTags} {activeTags} ontoggle={toggleTag} />
+		</section>
+	{/if}
 
 	{#if data.preferences.length > 0}
 		<section class="preferences-section">
@@ -152,50 +259,6 @@
 			</div>
 		</section>
 	{/if}
-
-	{#if data.allTags.length > 0}
-		<section class="tags-section">
-			<h2>Add tags</h2>
-			<TagBar tags={data.allTags} {activeTags} ontoggle={toggleTag} />
-		</section>
-	{/if}
-
-	<div class="actions-row">
-		<button
-			type="button"
-			class="propose-btn stored"
-			onclick={proposeRandom}
-			disabled={loadingRandom || data.meals.length === 0}
-		>
-			<span class="icon btn-icon">casino</span>
-			{loadingRandom ? 'Picking...' : 'From my meals'}
-		</button>
-		<button
-			type="button"
-			class="propose-btn ideas"
-			onclick={proposeNewIdeas}
-			disabled={loadingIdeas}
-		>
-			<span class="icon btn-icon">auto_awesome</span>
-			{loadingIdeas ? 'Thinking...' : 'New ideas'}
-		</button>
-	</div>
-
-	{#if proposals.length === 0}
-		<EmptyState message="Hit a button above to get meal ideas!" />
-	{:else}
-		<div class="proposals-list">
-			{#each proposals as proposal, index (proposal.name + index)}
-				<div in:fly={{ y: 20, duration: 300, delay: index * 80 }}>
-					<ProposalCard
-						{proposal}
-						onaccept={() => acceptProposal(proposal)}
-						ondismiss={() => dismissProposal(index)}
-					/>
-				</div>
-			{/each}
-		</div>
-	{/if}
 </div>
 
 <Modal open={savingMeal !== null} onclose={() => (savingMeal = null)} label="Save as meal">
@@ -219,6 +282,104 @@
 		display: flex;
 		flex-direction: column;
 		gap: 24px;
+	}
+
+	.input-section {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.theme-input input {
+		width: 100%;
+		padding: 14px 16px;
+		border: 2px solid var(--color-border);
+		border-radius: var(--radius-md);
+		font-size: var(--font-base);
+		color: var(--color-charcoal);
+		background: var(--color-white);
+		transition: border-color var(--transition-fast);
+	}
+
+	.theme-input input:focus {
+		outline: none;
+		border-color: var(--color-sage);
+	}
+
+	.actions-row {
+		display: flex;
+		gap: 12px;
+	}
+
+	.generate-btn {
+		flex: 1;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		padding: 18px 24px;
+		border-radius: var(--radius-lg);
+		font-size: var(--font-base);
+		font-weight: 700;
+		cursor: pointer;
+		border: none;
+		background-color: var(--color-sage);
+		color: var(--color-white);
+		box-shadow: 0 2px 8px rgba(125, 155, 118, 0.3);
+		transition:
+			background-color var(--transition-fast),
+			transform var(--transition-fast),
+			box-shadow var(--transition-fast);
+	}
+
+	.generate-btn:hover:not(:disabled) {
+		background-color: var(--color-sage-dark);
+		box-shadow: 0 4px 12px rgba(125, 155, 118, 0.4);
+	}
+
+	.generate-btn:active:not(:disabled) {
+		transform: scale(0.97);
+	}
+
+	.generate-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.btn-icon {
+		font-size: 22px;
+	}
+
+	.random-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+		padding: 18px 24px;
+		border-radius: var(--radius-lg);
+		font-size: var(--font-base);
+		font-weight: 700;
+		cursor: pointer;
+		border: 2px solid var(--color-border);
+		background: transparent;
+		color: var(--color-muted);
+		transition:
+			border-color var(--transition-fast),
+			color var(--transition-fast);
+	}
+
+	.random-btn:hover:not(:disabled) {
+		border-color: var(--color-sage);
+		color: var(--color-charcoal);
+	}
+
+	.random-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.btn-icon-sm {
+		font-size: 20px;
 	}
 
 	.preferences-section {
@@ -345,63 +506,31 @@
 		font-size: var(--font-lg);
 	}
 
-	.actions-row {
+	.progress-section {
 		display: flex;
-		gap: 12px;
+		flex-direction: column;
+		gap: 10px;
 	}
 
-	.propose-btn {
-		flex: 1;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-		padding: 18px 24px;
-		border-radius: var(--radius-lg);
-		font-size: var(--font-base);
-		font-weight: 700;
-		cursor: pointer;
-		border: none;
-		transition:
-			background-color var(--transition-fast),
-			transform var(--transition-fast),
-			box-shadow var(--transition-fast);
+	.progress-bar {
+		width: 100%;
+		height: 8px;
+		background-color: var(--color-surface);
+		border-radius: var(--radius-pill);
+		overflow: hidden;
 	}
 
-	.btn-icon {
-		font-size: 22px;
+	.progress-fill {
+		height: 100%;
+		background-color: var(--color-sage);
+		border-radius: var(--radius-pill);
+		transition: width 0.1s linear;
 	}
 
-	.propose-btn:active {
-		transform: scale(0.97);
-	}
-
-	.propose-btn:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-		transform: none;
-	}
-
-	.propose-btn.stored {
-		background-color: var(--color-terracotta);
-		color: var(--color-white);
-		box-shadow: 0 2px 8px rgba(198, 125, 91, 0.3);
-	}
-
-	.propose-btn.stored:hover:not(:disabled) {
-		background-color: #b06a48;
-		box-shadow: 0 4px 12px rgba(198, 125, 91, 0.4);
-	}
-
-	.propose-btn.ideas {
-		background-color: var(--color-honey);
-		color: var(--color-charcoal);
-		box-shadow: 0 2px 8px rgba(232, 184, 75, 0.3);
-	}
-
-	.propose-btn.ideas:hover:not(:disabled) {
-		background-color: #d4a43a;
-		box-shadow: 0 4px 12px rgba(232, 184, 75, 0.4);
+	.progress-text {
+		font-size: var(--font-sm);
+		color: var(--color-muted);
+		text-align: center;
 	}
 
 	.proposals-list {

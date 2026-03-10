@@ -51,15 +51,26 @@
 		await fetch(`/api/meals/${meal.id}`, { method: 'DELETE' });
 		await invalidateAll();
 	}
+
+	async function handleGenerateDetails(meal) {
+		await fetch(`/api/meals/${meal.id}`, { method: 'POST' });
+		await invalidateAll();
+	}
 </script>
 
 <div class="meals-page">
 	<div class="page-header">
 		<h1>Meals</h1>
-		<button type="button" class="fab" onclick={() => (showCreateModal = true)}>
-			<span class="icon fab-icon">add</span>
-			Add meal
-		</button>
+		<div class="header-actions">
+			<a href="/propose" class="fab secondary">
+				<span class="icon fab-icon">auto_awesome</span>
+				Propose new meals
+			</a>
+			<button type="button" class="fab" onclick={() => (showCreateModal = true)}>
+				<span class="icon fab-icon">add</span>
+				Add meal
+			</button>
+		</div>
 	</div>
 
 	{#if data.allTags.length > 0}
@@ -76,6 +87,7 @@
 						{meal}
 						onedit={() => (editingMeal = meal)}
 						ondelete={() => handleDelete(meal)}
+						ongeneratedetails={() => handleGenerateDetails(meal)}
 					/>
 				</div>
 			{/each}
@@ -148,6 +160,25 @@
 
 	.fab:active {
 		transform: scale(0.97);
+	}
+
+	.fab.secondary {
+		background-color: transparent;
+		color: var(--color-sage);
+		border: 2px solid var(--color-sage);
+		box-shadow: none;
+		text-decoration: none;
+	}
+
+	.fab.secondary:hover {
+		background-color: var(--color-sage);
+		color: var(--color-white);
+		box-shadow: 0 2px 8px rgba(125, 155, 118, 0.3);
+	}
+
+	.header-actions {
+		display: flex;
+		gap: 8px;
 	}
 
 	.meals-list {

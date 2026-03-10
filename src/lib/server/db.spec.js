@@ -159,3 +159,53 @@ describe('getAllTags', () => {
 		expect(tags).toEqual([]);
 	});
 });
+
+describe('renameTag', () => {
+	it('renames a tag across meals and preferences', async () => {
+		await db.createMeal({ name: 'Tacos', tags: ['mexican', 'quick'], notes: '' });
+		await db.createMeal({ name: 'Burrito', tags: ['mexican'], notes: '' });
+		await db.createPreference({ text: 'I like mexican', tags: ['mexican'] });
+
+		await db.renameTag('mexican', 'tex-mex');
+
+		const meals = await db.getAllMeals();
+		expect(meals[0].tags).toEqual(['tex-mex', 'quick']);
+		expect(meals[1].tags).toEqual(['tex-mex']);
+
+		const prefs = await db.getAllPreferences();
+		expect(prefs[0].tags).toEqual(['tex-mex']);
+	});
+
+	it('does not affect unrelated tags', async () => {
+		await db.createMeal({ name: 'Pasta', tags: ['italian', 'quick'], notes: '' });
+
+		await db.renameTag('mexican', 'tex-mex');
+
+		const meals = await db.getAllMeals();
+		expect(meals[0].tags).toEqual(['italian', 'quick']);
+	});
+});
+
+describe('deleteTag', () => {
+	it('removes a tag from all meals and preferences', async () => {
+		await db.createMeal({ name: 'Tacos', tags: ['mexican', 'quick'], notes: '' });
+		await db.createPreference({ text: 'Quick meals', tags: ['quick', 'weeknight'] });
+
+		await db.deleteTag('quick');
+
+		const meals = await db.getAllMeals();
+		expect(meals[0].tags).toEqual(['mexican']);
+
+		const prefs = await db.getAllPreferences();
+		expect(prefs[0].tags).toEqual(['weeknight']);
+	});
+
+	it('handles deleting a tag that does not exist', async () => {
+		await db.createMeal({ name: 'Pasta', tags: ['italian'], notes: '' });
+
+		await db.deleteTag('nonexistent');
+
+		const meals = await db.getAllMeals();
+		expect(meals[0].tags).toEqual(['italian']);
+	});
+});

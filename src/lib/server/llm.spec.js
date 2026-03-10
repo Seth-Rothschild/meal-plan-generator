@@ -123,19 +123,16 @@ describe('discoverPreference', () => {
 	});
 });
 
-describe('proposeMeals', () => {
-	it('parses JSON array of meal proposals', async () => {
-		let proposals = [
-			{ name: 'Pasta', description: 'A classic', tags: ['italian'] },
-			{ name: 'Tacos', description: 'Quick and easy', tags: ['mexican'] }
-		];
+describe('proposeSingleMeal', () => {
+	it('parses JSON object meal proposal', async () => {
+		let proposal = { name: 'Pasta', description: 'A classic', tags: ['italian'] };
 		vi.spyOn(global, 'fetch').mockResolvedValue(
 			new Response(
 				JSON.stringify({
 					choices: [
 						{
 							message: {
-								content: '```json\n' + JSON.stringify(proposals) + '\n```'
+								content: '```json\n' + JSON.stringify(proposal) + '\n```'
 							}
 						}
 					]
@@ -143,12 +140,33 @@ describe('proposeMeals', () => {
 			)
 		);
 
-		let result = await llm.proposeMeals(
+		let result = await llm.proposeSingleMeal(
 			[{ text: 'I like spicy food', tags: ['spicy'] }],
 			['italian']
 		);
-		expect(result).toHaveLength(2);
-		expect(result[0].name).toBe('Pasta');
-		expect(result[1].name).toBe('Tacos');
+		expect(result.name).toBe('Pasta');
+		expect(result.description).toBe('A classic');
+	});
+});
+
+describe('generateMealDetails', () => {
+	it('returns description text from LLM', async () => {
+		vi.spyOn(global, 'fetch').mockResolvedValue(
+			new Response(
+				JSON.stringify({
+					choices: [
+						{
+							message: {
+								content:
+									'A hearty Italian classic with rich tomato sauce and fresh basil.'
+							}
+						}
+					]
+				})
+			)
+		);
+
+		let result = await llm.generateMealDetails('Pasta Marinara', ['italian']);
+		expect(result).toBe('A hearty Italian classic with rich tomato sauce and fresh basil.');
 	});
 });

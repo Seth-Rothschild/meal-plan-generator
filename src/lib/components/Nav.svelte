@@ -2,11 +2,9 @@
 	let { currentPath = '/' } = $props();
 
 	let links = [
-		{ href: '/', label: 'Home', icon: 'home' },
 		{ href: '/meals', label: 'Meals', icon: 'skillet' },
 		{ href: '/preferences', label: 'Preferences', icon: 'favorite' },
-		{ href: '/discover', label: 'Discover', icon: 'auto_awesome' },
-		{ href: '/propose', label: 'Propose', icon: 'casino' }
+		{ href: '/settings', label: 'Settings', icon: 'settings' }
 	];
 
 	function isActive(href) {

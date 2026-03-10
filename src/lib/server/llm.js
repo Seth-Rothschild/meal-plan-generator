@@ -1,7 +1,7 @@
 function getConfig() {
 	let endpoint = process.env.ENDPOINT || 'https://api.openai.com/v1';
 	let apiKey = process.env.API_KEY || '';
-	let model = process.env.MODEL || 'gpt-5-mini';
+	let model = process.env.MODEL || 'gpt-5-nano';
 	return { endpoint, apiKey, model };
 }
 
@@ -62,7 +62,7 @@ function buildDiscoverPrompt(existingPreferences, existingTags) {
 
 	if (existingPreferences.length > 0) {
 		let titles = existingPreferences.map((p) => `- ${p.text}`).join('\n');
-		prompt += `\n\nThe user already has these saved preferences. Avoid asking about topics they already cover:\n${titles}`;
+		prompt += `\n\nThe user already has these saved preferences. Do NOT repeat, rephrase, or include any of these in your generated snippets. Only produce snippets about NEW topics from this conversation:\n${titles}`;
 	}
 
 	if (existingTags.length > 0) {
@@ -93,35 +93,55 @@ export async function discoverPreference(messages, { existingPreferences = [], e
 	return { reply, done: false, snippets: null };
 }
 
-const PROPOSE_SYSTEM_PROMPT = `You are a creative meal suggestion assistant. Based on the user's preferences and desired tags, suggest 3 meal ideas.
+const PROPOSE_SINGLE_PROMPT = `You are a creative meal suggestion assistant. Based on the user's preferences and desired tags, suggest exactly 1 meal idea.
 
-Return your suggestions as a JSON array inside a code fence:
+Return your suggestion as a JSON object inside a code fence:
 
 \`\`\`json
-[
-  {"name": "Meal Name", "description": "Brief description", "tags": ["relevant", "tags"]},
-  ...
-]
+{"name": "Meal Name", "description": "Brief description", "tags": ["relevant", "tags"]}
 \`\`\`
 
-Be creative but practical. Suggest meals that match the preferences and are realistic to cook at home.`;
+Be creative but practical. Suggest a meal that matches the preferences and is realistic to cook at home.`;
 
-export async function proposeMeals(preferences, activeTags) {
+export async function proposeSingleMeal(preferences, activeTags, theme = '', avoidNames = []) {
 	let prefsText = preferences.map((p) => `- ${p.text} (${p.tags.join(', ')})`).join('\n');
 	let tagsText = activeTags.length > 0 ? `Focus on these tags: ${activeTags.join(', ')}` : '';
+	let themeText = theme ? `Theme or idea: ${theme}` : '';
+	let avoidText = avoidNames.length > 0 ? `Do NOT suggest any of these: ${avoidNames.join(', ')}` : '';
 
-	let userMessage = `My food preferences:\n${prefsText}\n\n${tagsText}\n\nSuggest 3 meals I might enjoy.`;
+	let parts = ['My food preferences:', prefsText, tagsText, themeText, avoidText, 'Suggest 1 meal I might enjoy.'];
+	let userMessage = parts.filter(Boolean).join('\n\n');
 
 	let messages = [
-		{ role: 'system', content: PROPOSE_SYSTEM_PROMPT },
+		{ role: 'system', content: PROPOSE_SINGLE_PROMPT },
 		{ role: 'user', content: userMessage }
 	];
 
 	let reply = await chatCompletion(messages);
 
 	try {
-		return extractJson(reply);
+		let parsed = extractJson(reply);
+		if (Array.isArray(parsed)) {
+			return parsed[0] || null;
+		}
+		return parsed;
 	} catch {
-		return [];
+		return null;
 	}
+}
+
+const MEAL_DETAILS_PROMPT = `You are a helpful cooking assistant. Given a meal name and its tags, write a short description of the meal (2-3 sentences). Focus on what makes it appealing and any key ingredients or techniques.
+
+Return only the description text, no JSON or formatting.`;
+
+export async function generateMealDetails(name, tags) {
+	let tagsText = tags.length > 0 ? ` (tags: ${tags.join(', ')})` : '';
+	let userMessage = `Describe this meal: ${name}${tagsText}`;
+
+	let messages = [
+		{ role: 'system', content: MEAL_DETAILS_PROMPT },
+		{ role: 'user', content: userMessage }
+	];
+
+	return await chatCompletion(messages);
 }

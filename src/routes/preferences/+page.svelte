@@ -56,10 +56,16 @@
 <div class="preferences-page">
 	<div class="page-header">
 		<h1>Preferences</h1>
-		<button type="button" class="fab" onclick={() => (showCreateModal = true)}>
-			<span class="icon fab-icon">add</span>
-			Add preference
-		</button>
+		<div class="header-actions">
+			<a href="/discover" class="fab secondary">
+				<span class="icon fab-icon">auto_awesome</span>
+				Discover
+			</a>
+			<button type="button" class="fab" onclick={() => (showCreateModal = true)}>
+				<span class="icon fab-icon">add</span>
+				Add
+			</button>
+		</div>
 	</div>
 
 	{#if data.allTags.length > 0}
@@ -148,6 +154,25 @@
 
 	.fab:active {
 		transform: scale(0.97);
+	}
+
+	.fab.secondary {
+		background-color: transparent;
+		color: var(--color-sage);
+		border: 2px solid var(--color-sage);
+		box-shadow: none;
+		text-decoration: none;
+	}
+
+	.fab.secondary:hover {
+		background-color: var(--color-sage);
+		color: var(--color-white);
+		box-shadow: 0 2px 8px rgba(125, 155, 118, 0.3);
+	}
+
+	.header-actions {
+		display: flex;
+		gap: 8px;
 	}
 
 	.preferences-list {
