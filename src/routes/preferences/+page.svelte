@@ -63,11 +63,11 @@
 		<div class="header-actions">
 			<a href="/discover" class="fab secondary">
 				<span class="icon fab-icon">auto_awesome</span>
-				Discover new preferences
+				Discover
 			</a>
 			<button type="button" class="fab" onclick={() => (showCreateModal = true)}>
 				<span class="icon fab-icon">add</span>
-				Add preference
+				Add
 			</button>
 		</div>
 	</div>
@@ -123,8 +123,10 @@
 
 	.page-header {
 		display: flex;
+		flex-wrap: wrap;
 		justify-content: space-between;
 		align-items: center;
+		gap: 12px;
 	}
 
 	.fab {
@@ -138,6 +140,7 @@
 		border-radius: var(--radius-md);
 		font-size: var(--font-sm);
 		font-weight: 600;
+		white-space: nowrap;
 		cursor: pointer;
 		transition:
 			background-color var(--transition-fast),

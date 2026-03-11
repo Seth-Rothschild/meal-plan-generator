@@ -10,8 +10,9 @@
 	import { invalidateAll } from '$app/navigation';
 	import { safeFetch } from '$lib/toast.svelte.js';
 
-	const MEAL_COUNT = 3;
 	const SLOW_CRAWL_TARGET = 0.15;
+
+	let mealCount = $state(3);
 
 	let { data } = $props();
 
@@ -99,10 +100,10 @@
 
 		let collectedNames = [];
 
-		for (let i = 0; i < MEAL_COUNT; i++) {
+		for (let i = 0; i < mealCount; i++) {
 			let result = await fetchSingleProposal(collectedNames);
 			completedCount++;
-			progress.target = completedCount / MEAL_COUNT;
+			progress.target = completedCount / mealCount;
 			if (result.proposal) {
 				collectedNames.push(result.proposal.name);
 				proposals = [...proposals, result.proposal];
@@ -167,6 +168,27 @@
 					{loadingRandom ? 'Picking...' : 'From my meals'}
 				</button>
 			{/if}
+			<div class="count-picker">
+				<button
+					type="button"
+					class="count-btn"
+					aria-label="Fewer meals"
+					disabled={mealCount <= 1 || loadingIdeas}
+					onclick={() => mealCount--}
+				>
+					<span class="icon">remove</span>
+				</button>
+				<span class="count-value">{mealCount}</span>
+				<button
+					type="button"
+					class="count-btn"
+					aria-label="More meals"
+					disabled={mealCount >= 10 || loadingIdeas}
+					onclick={() => mealCount++}
+				>
+					<span class="icon">add</span>
+				</button>
+			</div>
 		</div>
 	</div>
 
@@ -178,7 +200,7 @@
 			<p class="progress-text">
 				{completedCount === 0
 					? 'Generating meal ideas...'
-					: `${completedCount} of ${MEAL_COUNT} meals ready`}
+					: `${completedCount} of ${mealCount} meals ready`}
 			</p>
 		</div>
 	{/if}
@@ -306,6 +328,55 @@
 	.actions-row {
 		display: flex;
 		gap: 12px;
+		align-items: stretch;
+	}
+
+	.count-picker {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		background: var(--color-white);
+		border: 2px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		padding: 4px 6px;
+	}
+
+	.count-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		border: none;
+		background: none;
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+		color: var(--color-muted);
+		transition:
+			background-color var(--transition-fast),
+			color var(--transition-fast);
+	}
+
+	.count-btn:hover:not(:disabled) {
+		background-color: var(--color-surface);
+		color: var(--color-charcoal);
+	}
+
+	.count-btn:disabled {
+		opacity: 0.3;
+		cursor: not-allowed;
+	}
+
+	.count-btn .icon {
+		font-size: 20px;
+	}
+
+	.count-value {
+		min-width: 24px;
+		text-align: center;
+		font-size: var(--font-base);
+		font-weight: 700;
+		color: var(--color-charcoal);
 	}
 
 	.generate-btn {

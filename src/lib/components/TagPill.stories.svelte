@@ -32,7 +32,7 @@
 
 <Story
 	name="Toggleable"
-	args={{ label: 'comfort', active: false }}
+	args={{ label: 'comfort', active: false, clickable: true }}
 	play={async ({ canvasElement, args }) => {
 		const canvas = within(canvasElement);
 		const pill = canvas.getByRole('button', { name: /comfort/i });

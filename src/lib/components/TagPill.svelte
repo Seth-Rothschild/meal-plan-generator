@@ -1,11 +1,16 @@
 <script>
-	let { label, active = false, removable = false, ontoggle, onremove } = $props();
+	let { label, active = false, removable = false, clickable = false, ontoggle, onremove } =
+		$props();
 </script>
 
 <span class="tag-pill" class:active>
-	<button type="button" class="tag-label" aria-label={label} onclick={() => ontoggle?.()}>
-		{label}
-	</button>
+	{#if clickable}
+		<button type="button" class="tag-label" aria-label={label} onclick={() => ontoggle?.()}>
+			{label}
+		</button>
+	{:else}
+		<span class="tag-text">{label}</span>
+	{/if}
 	{#if removable}
 		<button
 			type="button"
@@ -47,6 +52,10 @@
 		padding: 0;
 		font: inherit;
 		color: inherit;
+	}
+
+	.tag-text {
+		cursor: default;
 	}
 
 	.tag-label:hover {

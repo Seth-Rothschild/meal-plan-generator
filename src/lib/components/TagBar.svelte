@@ -6,7 +6,12 @@
 
 <div class="tag-bar">
 	{#each tags as tag}
-		<TagPill label={tag} active={activeTags.includes(tag)} ontoggle={() => ontoggle?.(tag)} />
+		<TagPill
+			label={tag}
+			active={activeTags.includes(tag)}
+			clickable
+			ontoggle={() => ontoggle?.(tag)}
+		/>
 	{/each}
 </div>
 
