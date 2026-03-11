@@ -13,7 +13,7 @@
 				description: 'A fragrant coconut-based curry with vegetables and basil.',
 				tags: ['thai', 'spicy', 'quick']
 			},
-			onaccept: fn(),
+			onsave: fn(),
 			ondismiss: fn()
 		}
 	});
@@ -34,12 +34,12 @@
 />
 
 <Story
-	name="ClickAccept"
+	name="ClickSave"
 	play={async ({ canvasElement, args }) => {
 		const canvas = within(canvasElement);
 		const acceptButton = canvas.getByRole('button', { name: /accept|save|add/i });
 		await userEvent.click(acceptButton);
-		await expect(args.onaccept).toHaveBeenCalledOnce();
+		await expect(args.onsave).toHaveBeenCalledOnce();
 	}}
 />
 

@@ -1,6 +1,7 @@
 <script>
 	import { fly } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
+	import { safeFetch } from '$lib/toast.svelte.js';
 	import TagBar from '$lib/components/TagBar.svelte';
 	import MealCard from '$lib/components/MealCard.svelte';
 	import MealForm from '$lib/components/MealForm.svelte';
@@ -28,32 +29,36 @@
 	}
 
 	async function handleCreate(mealData) {
-		await fetch('/api/meals', {
+		let response = await safeFetch('/api/meals', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(mealData)
 		});
+		if (!response) return;
 		showCreateModal = false;
 		await invalidateAll();
 	}
 
 	async function handleEdit(mealData) {
-		await fetch(`/api/meals/${editingMeal.id}`, {
+		let response = await safeFetch(`/api/meals/${editingMeal.id}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(mealData)
 		});
+		if (!response) return;
 		editingMeal = null;
 		await invalidateAll();
 	}
 
 	async function handleDelete(meal) {
-		await fetch(`/api/meals/${meal.id}`, { method: 'DELETE' });
+		let response = await safeFetch(`/api/meals/${meal.id}`, { method: 'DELETE' });
+		if (!response) return;
 		await invalidateAll();
 	}
 
 	async function handleGenerateDetails(meal) {
-		await fetch(`/api/meals/${meal.id}`, { method: 'POST' });
+		let response = await safeFetch(`/api/meals/${meal.id}`, { method: 'POST' });
+		if (!response) return;
 		await invalidateAll();
 	}
 </script>
@@ -179,6 +184,18 @@
 	.header-actions {
 		display: flex;
 		gap: 8px;
+	}
+
+	@media (max-width: 500px) {
+		.page-header {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 12px;
+		}
+
+		.header-actions {
+			flex-direction: column;
+		}
 	}
 
 	.meals-list {

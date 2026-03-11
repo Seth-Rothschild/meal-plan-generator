@@ -1,8 +1,6 @@
 <script>
 	import { scale, fade } from 'svelte/transition';
-	import TagPill from './TagPill.svelte';
-
-	let { proposal, onaccept, ondismiss } = $props();
+	let { proposal, onsave, ondismiss } = $props();
 
 	let description = $derived(proposal.description || proposal.notes || '');
 </script>
@@ -25,19 +23,21 @@
 	{#if proposal.tags?.length > 0}
 		<div class="proposal-tags">
 			{#each proposal.tags as tag}
-				<TagPill label={tag} />
+				<span class="proposal-tag">{tag}</span>
 			{/each}
 		</div>
 	{/if}
 
-	<div class="proposal-actions">
-		<button type="button" class="btn btn-dismiss" aria-label="Skip" onclick={() => ondismiss?.()}>
-			Skip
-		</button>
-		<button type="button" class="btn btn-accept" aria-label="Add" onclick={() => onaccept?.()}>
-			{proposal.isStored ? "Let's make this!" : 'Save meal'}
-		</button>
-	</div>
+	{#if !proposal.isStored}
+		<div class="proposal-actions">
+			<button type="button" class="btn btn-dismiss" aria-label="Skip" onclick={() => ondismiss?.()}>
+				Skip
+			</button>
+			<button type="button" class="btn btn-accept" aria-label="Save meal" onclick={() => onsave?.()}>
+				Save meal
+			</button>
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -72,7 +72,7 @@
 		background: var(--color-surface);
 		color: var(--color-muted);
 		padding: 3px 10px;
-		border-radius: var(--radius-pill);
+		border-radius: var(--radius-md);
 	}
 
 	.badge-icon {
@@ -91,6 +91,15 @@
 		flex-wrap: wrap;
 		gap: 6px;
 		margin-bottom: 18px;
+	}
+
+	.proposal-tag {
+		padding: 4px 12px;
+		border-radius: var(--radius-md);
+		background-color: var(--color-surface);
+		color: var(--color-muted);
+		font-size: var(--font-sm);
+		font-weight: 600;
 	}
 
 	.proposal-actions {

@@ -1,6 +1,7 @@
 <script>
 	import { fly } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
+	import { safeFetch } from '$lib/toast.svelte.js';
 	import TagBar from '$lib/components/TagBar.svelte';
 	import SnippetCard from '$lib/components/SnippetCard.svelte';
 	import SnippetForm from '$lib/components/SnippetForm.svelte';
@@ -28,27 +29,30 @@
 	}
 
 	async function handleCreate(snippetData) {
-		await fetch('/api/preferences', {
+		let response = await safeFetch('/api/preferences', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(snippetData)
 		});
+		if (!response) return;
 		showCreateModal = false;
 		await invalidateAll();
 	}
 
 	async function handleEdit(snippetData) {
-		await fetch(`/api/preferences/${editingSnippet.id}`, {
+		let response = await safeFetch(`/api/preferences/${editingSnippet.id}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(snippetData)
 		});
+		if (!response) return;
 		editingSnippet = null;
 		await invalidateAll();
 	}
 
 	async function handleDelete(snippet) {
-		await fetch(`/api/preferences/${snippet.id}`, { method: 'DELETE' });
+		let response = await safeFetch(`/api/preferences/${snippet.id}`, { method: 'DELETE' });
+		if (!response) return;
 		await invalidateAll();
 	}
 </script>
@@ -59,11 +63,11 @@
 		<div class="header-actions">
 			<a href="/discover" class="fab secondary">
 				<span class="icon fab-icon">auto_awesome</span>
-				Discover
+				Discover new preferences
 			</a>
 			<button type="button" class="fab" onclick={() => (showCreateModal = true)}>
 				<span class="icon fab-icon">add</span>
-				Add
+				Add preference
 			</button>
 		</div>
 	</div>
@@ -173,6 +177,18 @@
 	.header-actions {
 		display: flex;
 		gap: 8px;
+	}
+
+	@media (max-width: 500px) {
+		.page-header {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 12px;
+		}
+
+		.header-actions {
+			flex-direction: column;
+		}
 	}
 
 	.preferences-list {

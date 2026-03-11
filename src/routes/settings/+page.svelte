@@ -1,6 +1,7 @@
 <script>
 	import { fly } from 'svelte/transition';
 	import { invalidateAll } from '$app/navigation';
+	import { safeFetch } from '$lib/toast.svelte.js';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 
 	let { data } = $props();
@@ -26,19 +27,21 @@
 			return;
 		}
 		saving = true;
-		await fetch(`/api/tags/${encodeURIComponent(editingTag)}`, {
+		let response = await safeFetch(`/api/tags/${encodeURIComponent(editingTag)}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ name: trimmed })
 		});
 		saving = false;
+		if (!response) return;
 		editingTag = null;
 		editValue = '';
 		await invalidateAll();
 	}
 
 	async function handleDelete(tag) {
-		await fetch(`/api/tags/${encodeURIComponent(tag)}`, { method: 'DELETE' });
+		let response = await safeFetch(`/api/tags/${encodeURIComponent(tag)}`, { method: 'DELETE' });
+		if (!response) return;
 		await invalidateAll();
 	}
 

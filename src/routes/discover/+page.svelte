@@ -3,6 +3,7 @@
 	import { fly } from 'svelte/transition';
 	import { Tween } from 'svelte/motion';
 	import { linear } from 'svelte/easing';
+	import { safeFetch } from '$lib/toast.svelte.js';
 
 	let messages = $state([]);
 	let loading = $state(false);
@@ -59,15 +60,21 @@
 		progress = new Tween(0, { duration: 20000, easing: linear });
 		progress.target = 0.9;
 
-		let response = await fetch('/api/discover', {
+		let response = await safeFetch('/api/discover', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ messages })
 		});
 
-		let result = await response.json();
 		progress = new Tween(1, { duration: 300, easing: linear });
 		loading = false;
+
+		if (!response) {
+			messages = messages.slice(0, -1);
+			return;
+		}
+
+		let result = await response.json();
 
 		if (result.error) {
 			messages = [
@@ -94,13 +101,14 @@
 	async function saveSnippet(index) {
 		if (!doneSnippets || !doneSnippets[index]) return;
 		savingIndex = index;
-		await fetch('/api/preferences', {
+		let response = await safeFetch('/api/preferences', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(doneSnippets[index])
 		});
-		savedIndexes = new Set([...savedIndexes, index]);
 		savingIndex = -1;
+		if (!response) return;
+		savedIndexes = new Set([...savedIndexes, index]);
 	}
 
 	async function saveAllSnippets() {

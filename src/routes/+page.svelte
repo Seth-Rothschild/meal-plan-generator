@@ -6,6 +6,7 @@
 	import MealForm from '$lib/components/MealForm.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import { invalidateAll } from '$app/navigation';
+	import { safeFetch } from '$lib/toast.svelte.js';
 
 	const MEAL_COUNT = 3;
 	const SLOW_CRAWL_TARGET = 0.15;
@@ -23,8 +24,8 @@
 
 	let selectedPreferences = $derived(data.preferences);
 
-	function fetchSingleProposal(avoidNames) {
-		return fetch('/api/propose', {
+	async function fetchSingleProposal(avoidNames) {
+		let response = await safeFetch('/api/propose', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -33,19 +34,22 @@
 				theme,
 				avoidNames
 			})
-		}).then((r) => r.json());
+		});
+		if (!response) return { proposal: null };
+		return response.json();
 	}
 
 	async function proposeRandom() {
 		loadingRandom = true;
 		proposals = [];
-		let response = await fetch('/api/propose/random', {
+		let response = await safeFetch('/api/propose/random', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ activeTags: [] })
 		});
-		let result = await response.json();
 		loadingRandom = false;
+		if (!response) return;
+		let result = await response.json();
 		if (result.meal) {
 			proposals = [result.meal];
 		}
@@ -77,20 +81,17 @@
 		proposals = proposals.filter((_, i) => i !== index);
 	}
 
-	function acceptProposal(proposal) {
-		if (proposal.isStored) {
-			proposals = proposals.filter((p) => p !== proposal);
-		} else {
-			savingMeal = proposal;
-		}
+	function saveProposal(proposal) {
+		savingMeal = proposal;
 	}
 
 	async function handleSaveMeal(mealData) {
-		await fetch('/api/meals', {
+		let response = await safeFetch('/api/meals', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(mealData)
 		});
+		if (!response) return;
 		proposals = proposals.filter((p) => p !== savingMeal);
 		savingMeal = null;
 		await invalidateAll();
@@ -159,7 +160,7 @@
 				<div in:fly={{ y: 20, duration: 300 }}>
 					<ProposalCard
 						{proposal}
-						onaccept={() => acceptProposal(proposal)}
+						onsave={() => saveProposal(proposal)}
 						ondismiss={() => dismissProposal(index)}
 					/>
 				</div>

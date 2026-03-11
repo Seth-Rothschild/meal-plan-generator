@@ -1,6 +1,7 @@
 <script>
 	import '../app.css';
 	import Nav from '$lib/components/Nav.svelte';
+	import ToastContainer from '$lib/components/ToastContainer.svelte';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
 
@@ -17,6 +18,8 @@
 <main class="main-content">
 	{@render children()}
 </main>
+
+<ToastContainer />
 
 <style>
 	.main-content {
